@@ -1,10 +1,10 @@
 (function (exports, components, pluginApi, storage, assets, metro, patcher) {
     "use strict";
-    //123
+
     const { ScrollView, Text, View, TextInput, Switch } = components.General;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
-
+    ///12313213123213 1424123 45132rt
     const store = pluginApi.storage;
 
     store.rules ??= JSON.stringify([]);
@@ -51,7 +51,7 @@
         if (!token) return Promise.reject(new Error("Could not retrieve auth token."));
         if (!userId || !userId.trim()) return Promise.reject(new Error("No User ID provided."));
         return fetch("https://discord.com/api/v10/users/" + userId.trim(), {
-            headers: { Authorization: token },
+            headers: { Authorization: token.startsWith("Bot ") || token.startsWith("Bearer ") ? token : "Bot " + token },
         }).then(function (res) {
             if (res.ok) return res.json();
             return res.json().catch(function () { return {}; }).then(function (err) {
