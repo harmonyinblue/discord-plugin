@@ -5,7 +5,7 @@
     const { FormRow, FormIcon, FormDivider } = components.Forms;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
-    /////wowowowowow
+    //wow1wow1wow1
     const store = pluginApi.storage;
     store.enabled ??= true;
     store.authToken ??= "";
@@ -70,8 +70,6 @@
     }
 
     function SettingsPage() {
-        storage.useProxy(store);
-
         var srcState = React.useState(store.sourceId || ""); var sourceId = srcState[0]; var setSourceId = srcState[1];
         var tgtState = React.useState(store.targetId || ""); var targetId = tgtState[0]; var setTargetId = tgtState[1];
         var fetchState = React.useState(false); var fetching = fetchState[0]; var setFetching = fetchState[1];
