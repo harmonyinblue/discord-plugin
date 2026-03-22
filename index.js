@@ -19,30 +19,33 @@
     store.decoSkuId ??= "";
 
     function getToken() {
+        var tok, t;
         try {
-            var t = metro.findByProps("getAuthToken");
+            t = metro.findByProps("getAuthToken");
             if (t && typeof t.getAuthToken === "function") {
-                var tok = t.getAuthToken();
-                if (tok) return tok;
+                tok = t.getAuthToken();
+                if (tok && typeof tok === "string" && tok.trim()) return tok.trim();
             }
         } catch (e) { }
         try {
-            var t2 = metro.findByProps("token", "getAuthToken");
-            if (t2 && t2.token) return t2.token;
-        } catch (e) { }
-        try {
-            var t3 = metro.findByStoreName("UserSettingsAccountStore");
-            if (t3 && t3.getAuthToken) return t3.getAuthToken();
-        } catch (e) { }
-        try {
-            if (window.nativeModuleProxy && window.nativeModuleProxy.MMKVManager) {
-                var tok2 = window.nativeModuleProxy.MMKVManager.getItem("token");
-                if (tok2) return tok2;
+            t = metro.findByStoreName("UserSettingsAccountStore");
+            if (t && typeof t.getAuthToken === "function") {
+                tok = t.getAuthToken();
+                if (tok && typeof tok === "string" && tok.trim()) return tok.trim();
             }
+        } catch (e) { }
+        try {
+            t = metro.findByProps("token");
+            if (t && typeof t.token === "string" && t.token.trim()) return t.token.trim();
+        } catch (e) { }
+        try {
+            t = metro.findByStoreName("UserStore");
+            var me = t && t.getCurrentUser && t.getCurrentUser();
+            if (me && me.token && typeof me.token === "string") return me.token.trim();
         } catch (e) { }
         return null;
     }
-    ///12312313
+
     function showToken(tok) {
         if (tok === null || tok === undefined) return "null / undefined";
         if (typeof tok !== "string") return "(type: " + typeof tok + ") " + JSON.stringify(tok);
@@ -113,7 +116,7 @@
         red: { marginTop: 8, backgroundColor: "#f23f43", borderRadius: 4, paddingVertical: 10, alignItems: "center" },
         grey: { marginTop: 8, backgroundColor: "#4e5058", borderRadius: 4, paddingVertical: 10, alignItems: "center" },
         btnTxt: { color: "#fff", fontWeight: "700", fontSize: 14 },
-        row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10 },
+        row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10, overflow: "hidden" },
         rowLbl: { color: "#dbdee1", fontSize: 15, flex: 1 },
     };
 
@@ -134,7 +137,7 @@
     function ToggleRow(props) {
         return React.createElement(View, { style: S.row },
             React.createElement(Text, { style: S.rowLbl }, props.label),
-            React.createElement(Switch, { value: props.value, onValueChange: props.onChange, trackColor: { true: "#5865f2" } })
+            React.createElement(View, { style: { width: 51, alignItems: "flex-end" } }, React.createElement(Switch, { value: props.value, onValueChange: props.onChange, trackColor: { true: "#5865f2" } }))
         );
     }
 
