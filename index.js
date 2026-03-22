@@ -5,14 +5,14 @@
     const { FormRow, FormIcon, FormDivider } = components.Forms;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
-    //wow1wow1wow1
+    //omg
     const store = pluginApi.storage;
     store.enabled ??= true;
     store.authToken ??= "";
     store.redirectEnabled ??= false;
     store.sourceId ??= "";
     store.targetId ??= "";
-    store.targetData ??= null;
+    store.targetData ??= "";
 
     function getToken() {
         var t = (store.authToken || "").trim();
@@ -73,7 +73,7 @@
         var srcState = React.useState(store.sourceId || ""); var sourceId = srcState[0]; var setSourceId = srcState[1];
         var tgtState = React.useState(store.targetId || ""); var targetId = tgtState[0]; var setTargetId = tgtState[1];
         var fetchState = React.useState(false); var fetching = fetchState[0]; var setFetching = fetchState[1];
-        var dataState = React.useState(store.targetData || null); var targetData = dataState[0]; var setTargetData = dataState[1];
+        var dataState = React.useState(store.targetData ? JSON.parse(store.targetData) : null); var targetData = dataState[0]; var setTargetData = dataState[1];
 
         var UserStore = metro.findByStoreName("UserStore");
 
@@ -90,7 +90,7 @@
             setFetching(true); setTargetData(null);
             fetchDiscordUser(id).then(function (data) {
                 setTargetData(data);
-                store.targetData = data;
+                store.targetData = JSON.stringify(data);
                 store.targetId = id;
                 setFetching(false);
             }).catch(function (e) { alert(e.message); setFetching(false); });
@@ -104,7 +104,7 @@
         }
 
         function clearRedirect() {
-            store.redirectEnabled = false; store.targetData = null;
+            store.redirectEnabled = false; store.targetData = "";
             setTargetData(null);
             alert("Redirect cleared.");
         }
@@ -208,7 +208,7 @@
             var src = (store.sourceId || "").trim();
             var tgt = (store.targetId || "").trim();
             if (!src || !tgt) return null;
-            return { src: src, tgt: tgt, data: store.targetData || null };
+            var td = store.targetData; return { src: src, tgt: tgt, data: td ? JSON.parse(td) : null };
         }
 
         _unpatchers.push(patcher.after("getUser", UserStore, function (args, user) {
