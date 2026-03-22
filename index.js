@@ -4,7 +4,7 @@
     const { ScrollView, Text, View, TextInput, Switch } = components.General;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
-    //ejesus
+
     const store = pluginApi.storage;
     store.enabled ??= true;
     store.authToken ??= "";
@@ -18,7 +18,7 @@
         if (!t) return null;
         return t.startsWith("Bot ") || t.startsWith("Bearer ") ? t : "Bot " + t;
     }
-
+    //lol
     function fetchDiscordUser(userId) {
         var auth = authHeader();
         if (!auth) return Promise.reject(new Error("No token set."));
@@ -168,22 +168,36 @@
 
     function SettingsPage() {
         var pageState = React.useState("home"); var page = pageState[0]; var setPage = pageState[1];
+        var tokenState = React.useState(store.authToken || ""); var tokenDraft = tokenState[0]; var setTokenDraft = tokenState[1];
+        var savedState = React.useState(false); var saved = savedState[0]; var setSaved = savedState[1];
 
         if (page === "redirector") return React.createElement(RedirectorPage, { onBack: function () { setPage("home"); } });
+
+        function saveToken() {
+            store.authToken = tokenDraft.trim();
+            setSaved(true);
+            setTimeout(function () { setSaved(false); }, 2000);
+        }
 
         return React.createElement(ScrollView, { style: S.bg },
 
             React.createElement(Text, { style: S.section }, "TOKEN"),
             React.createElement(View, { style: S.block },
-                React.createElement(View, { style: S.rowLast },
+                React.createElement(View, { style: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: "#1e1f22" } },
                     React.createElement(TextInput, {
                         placeholder: "Paste bot or user token here\u2026",
                         placeholderTextColor: "#4e5058",
-                        value: store.authToken || "",
-                        onChangeText: function (v) { store.authToken = v; },
-                        autoCapitalize: "none", autoCorrect: false, multiline: false,
-                        style: S.inpFull,
+                        value: tokenDraft,
+                        onChangeText: setTokenDraft,
+                        autoCapitalize: "none", autoCorrect: false, multiline: true,
+                        style: { color: "#dbdee1", fontSize: 13, fontFamily: "monospace", minHeight: 60 },
                     })
+                ),
+                React.createElement(View, { style: S.rowLast },
+                    React.createElement(Text, {
+                        style: { color: saved ? "#23a55a" : "#5865f2", fontSize: 14, fontWeight: "600" },
+                        onPress: saveToken, suppressHighlighting: true,
+                    }, saved ? "\u2713 Saved" : "Save Token")
                 )
             ),
 
