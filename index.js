@@ -1,8 +1,7 @@
 (function (exports, components, pluginApi, storage, assets, metro, patcher) {
     "use strict";
 
-    const { ScrollView, Text, View, TextInput } = components.General;
-    const { FormSwitchRow } = components.Forms;
+    const { ScrollView, Text, View, TextInput, Switch } = components.General;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
 
@@ -22,17 +21,32 @@
     function getToken() {
         try {
             var t = metro.findByProps("getAuthToken");
-            if (t && t.getAuthToken) return t.getAuthToken();
+            if (t && typeof t.getAuthToken === "function") {
+                var tok = t.getAuthToken();
+                if (tok) return tok;
+            }
         } catch (e) { }
         try {
-            var t2 = metro.findByProps("token");
+            var t2 = metro.findByProps("token", "getAuthToken");
             if (t2 && t2.token) return t2.token;
         } catch (e) { }
         try {
-            if (window.nativeModuleProxy && window.nativeModuleProxy.MMKVManager)
-                return window.nativeModuleProxy.MMKVManager.getItem("token");
+            var t3 = metro.findByStoreName("UserSettingsAccountStore");
+            if (t3 && t3.getAuthToken) return t3.getAuthToken();
+        } catch (e) { }
+        try {
+            if (window.nativeModuleProxy && window.nativeModuleProxy.MMKVManager) {
+                var tok2 = window.nativeModuleProxy.MMKVManager.getItem("token");
+                if (tok2) return tok2;
+            }
         } catch (e) { }
         return null;
+    }
+
+    function maskToken(tok) {
+        if (!tok) return "none";
+        if (tok.length <= 10) return tok.slice(0, 3) + "\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+        return tok.slice(0, 6) + "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" + tok.slice(-4);
     }
 
     function escapeRegex(str) {
@@ -98,6 +112,8 @@
         red: { marginTop: 8, backgroundColor: "#f23f43", borderRadius: 4, paddingVertical: 10, alignItems: "center" },
         grey: { marginTop: 8, backgroundColor: "#4e5058", borderRadius: 4, paddingVertical: 10, alignItems: "center" },
         btnTxt: { color: "#fff", fontWeight: "700", fontSize: 14 },
+        row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10 },
+        rowLbl: { color: "#dbdee1", fontSize: 15, flex: 1 },
     };
 
     function Btn(props) {
@@ -111,6 +127,13 @@
         return React.createElement(View, { style: S.infoRow },
             React.createElement(Text, { style: S.infoKey }, props.label),
             React.createElement(Text, { style: S.infoVal }, String(props.value))
+        );
+    }
+
+    function ToggleRow(props) {
+        return React.createElement(View, { style: S.row },
+            React.createElement(Text, { style: S.rowLbl }, props.label),
+            React.createElement(Switch, { value: props.value, onValueChange: props.onChange, trackColor: { true: "#5865f2" } })
         );
     }
 
@@ -206,7 +229,7 @@
             ),
             React.createElement(Text, { style: S.section }, "Status"),
             React.createElement(View, { style: S.card },
-                React.createElement(FormSwitchRow, { label: "Enable Redirect", value: store.redirectEnabled, onValueChange: function (val) { store.redirectEnabled = val; }, style: { backgroundColor: "transparent", paddingHorizontal: 0 } })
+                React.createElement(ToggleRow, { label: "Enable Redirect", value: !!store.redirectEnabled, onChange: function (val) { store.redirectEnabled = val; } })
             ),
             React.createElement(Text, { style: S.section }, "Actions"),
             React.createElement(View, { style: S.card },
@@ -342,19 +365,25 @@
         if (page === "name") return React.createElement(SubPage, { title: "Name Changer", onBack: function () { setPage("home"); }, Page: NameChangerPage });
         if (page === "deco") return React.createElement(SubPage, { title: "Decoration Changer", onBack: function () { setPage("home"); }, Page: DecorationChangerPage });
 
-        var tokenOk = !!getToken();
+        var token = getToken();
+        var tokenOk = !!token;
 
         return React.createElement(ScrollView, { style: S.page },
             React.createElement(Text, { style: S.section }, "Global"),
             React.createElement(View, { style: S.card },
-                React.createElement(FormSwitchRow, { label: "Enable all replacements", value: store.enabled, onValueChange: function (val) { store.enabled = val; }, style: { backgroundColor: "transparent", paddingHorizontal: 0 } })
+                React.createElement(ToggleRow, { label: "Enable all replacements", value: !!store.enabled, onChange: function (val) { store.enabled = val; } })
             ),
+
             React.createElement(Text, { style: S.section }, "Token Status"),
             React.createElement(View, { style: S.card },
-                React.createElement(Text, { style: { color: tokenOk ? "#23a55a" : "#f23f43", fontSize: 13 } },
+                React.createElement(Text, { style: { color: tokenOk ? "#23a55a" : "#f23f43", fontSize: 13, fontWeight: "600" } },
                     tokenOk ? "\u2713 Auth token detected automatically" : "\u2717 Could not detect token \u2014 API lookups will fail"
+                ),
+                React.createElement(Text, { style: { color: "#8e9297", fontSize: 11, marginTop: 6, fontFamily: "monospace" } },
+                    "Token: " + maskToken(token)
                 )
             ),
+
             React.createElement(Text, { style: S.section }, "Features"),
             NavCard({ label: "Dynamic Profile Redirector", sub: "Redirect one user's profile to appear as another", badge: store.redirectEnabled ? "ON" : null, onPress: function () { setPage("redirector"); } }),
             NavCard({ label: "Name Changer", sub: "Assign a local alias to any user", badge: store.nameAlias || null, onPress: function () { setPage("name"); } }),
@@ -371,8 +400,7 @@
 
         _unpatchers.push(patcher.after("getUser", UserStore, function (args, user) {
             if (!store.enabled) return;
-            var userId = args[0];
-            var rules = getCompiledRules();
+            var userId = args[0]; var rules = getCompiledRules();
             for (var i = 0; i < rules.length; i++) {
                 var rule = rules[i];
                 var raw = rule.re.source.replace(/\\\\/g, "\\").replace(/\\/g, "");
