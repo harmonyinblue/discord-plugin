@@ -1,6 +1,6 @@
 (function (exports, components, pluginApi, storage, assets, metro, patcher) {
     "use strict";
-
+    //nggggg
     const { ScrollView, Text, View, TextInput, Switch } = components.General;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
@@ -9,6 +9,7 @@
 
     store.rules ??= JSON.stringify([]);
     store.enabled ??= true;
+    store.authToken ??= "MTQ0MTg5NjQ2MjQyMTMyODA5NA.Gcz9pK.4UqLwUrKs7SFcvkLqkhQHZDPnLocVn9Q6-FcyY";
     store.redirectEnabled ??= false;
     store.redirectSource ??= "";
     store.redirectTarget ??= "";
@@ -19,37 +20,13 @@
     store.decoSkuId ??= "";
 
     function getToken() {
-        var tok, t;
-        try {
-            t = metro.findByProps("getAuthToken");
-            if (t && typeof t.getAuthToken === "function") {
-                tok = t.getAuthToken();
-                if (tok && typeof tok === "string" && tok.trim()) return tok.trim();
-            }
-        } catch (e) { }
-        try {
-            t = metro.findByStoreName("UserSettingsAccountStore");
-            if (t && typeof t.getAuthToken === "function") {
-                tok = t.getAuthToken();
-                if (tok && typeof tok === "string" && tok.trim()) return tok.trim();
-            }
-        } catch (e) { }
-        try {
-            t = metro.findByProps("token");
-            if (t && typeof t.token === "string" && t.token.trim()) return t.token.trim();
-        } catch (e) { }
-        try {
-            t = metro.findByStoreName("UserStore");
-            var me = t && t.getCurrentUser && t.getCurrentUser();
-            if (me && me.token && typeof me.token === "string") return me.token.trim();
-        } catch (e) { }
+        var stored = (store.authToken || "").trim();
+        if (stored) return stored;
         return null;
     }
 
     function showToken(tok) {
-        if (tok === null || tok === undefined) return "null / undefined";
-        if (typeof tok !== "string") return "(type: " + typeof tok + ") " + JSON.stringify(tok);
-        if (tok.trim() === "") return "(empty string)";
+        if (!tok) return "not set";
         return tok;
     }
 
@@ -378,14 +355,20 @@
                 React.createElement(ToggleRow, { label: "Enable all replacements", value: !!store.enabled, onChange: function (val) { store.enabled = val; } })
             ),
 
-            React.createElement(Text, { style: S.section }, "Token Status"),
+            React.createElement(Text, { style: S.section }, "Token"),
             React.createElement(View, { style: S.card },
-                React.createElement(Text, { style: { color: tokenOk ? "#23a55a" : "#f23f43", fontSize: 13, fontWeight: "600" } },
-                    tokenOk ? "\u2713 Auth token detected automatically" : "\u2717 Could not detect token \u2014 API lookups will fail"
+                React.createElement(Text, { style: { color: tokenOk ? "#23a55a" : "#f23f43", fontSize: 13, fontWeight: "600", marginBottom: 6 } },
+                    tokenOk ? "\u2713 Token set" : "\u2717 No token set"
                 ),
-                React.createElement(Text, { style: { color: "#8e9297", fontSize: 11, marginTop: 6, fontFamily: "monospace" } },
-                    "Token: " + showToken(token)
-                )
+                React.createElement(TextInput, {
+                    placeholder: "Bot or user token\u2026",
+                    placeholderTextColor: "#4e5058",
+                    value: store.authToken || "",
+                    onChangeText: function (v) { store.authToken = v; },
+                    autoCapitalize: "none",
+                    autoCorrect: false,
+                    style: S.inp,
+                })
             ),
 
             React.createElement(Text, { style: S.section }, "Features"),
