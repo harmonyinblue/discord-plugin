@@ -43,10 +43,11 @@
         return null;
     }
 
-    function maskToken(tok) {
-        if (!tok) return "none";
-        if (tok.length <= 10) return tok.slice(0, 3) + "\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
-        return tok.slice(0, 6) + "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" + tok.slice(-4);
+    function showToken(tok) {
+        if (tok === null || tok === undefined) return "null / undefined";
+        if (typeof tok !== "string") return "(type: " + typeof tok + ") " + JSON.stringify(tok);
+        if (tok.trim() === "") return "(empty string)";
+        return tok;
     }
 
     function escapeRegex(str) {
@@ -380,7 +381,7 @@
                     tokenOk ? "\u2713 Auth token detected automatically" : "\u2717 Could not detect token \u2014 API lookups will fail"
                 ),
                 React.createElement(Text, { style: { color: "#8e9297", fontSize: 11, marginTop: 6, fontFamily: "monospace" } },
-                    "Token: " + maskToken(token)
+                    "Token: " + showToken(token)
                 )
             ),
 
