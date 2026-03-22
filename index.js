@@ -4,9 +4,9 @@
     const { ScrollView, Text, View, TextInput, Switch } = components.General;
     const RowManager = metro.findByName("RowManager");
     let _unpatchers = [];
-    ///12313213123213 1424123 45132rt
-    const store = pluginApi.storage;
 
+    const store = pluginApi.storage;
+    ////1/23213132412938412364523765172 5t9812532h5ubdhbaSHJdasBDsab hdfbashbfdbhbhbashjdb
     store.rules ??= JSON.stringify([]);
     store.enabled ??= true;
     store.authToken ??= "";
@@ -51,7 +51,11 @@
         if (!token) return Promise.reject(new Error("Could not retrieve auth token."));
         if (!userId || !userId.trim()) return Promise.reject(new Error("No User ID provided."));
         return fetch("https://discord.com/api/v10/users/" + userId.trim(), {
-            headers: { Authorization: token.startsWith("Bot ") || token.startsWith("Bearer ") ? token : "Bot " + token },
+            headers: {
+                Authorization: token.startsWith("Bot ") || token.startsWith("Bearer ") ? token : "Bot " + token,
+                "User-Agent": "utopia/12.3.1",
+                Accept: "*/*",
+            },
         }).then(function (res) {
             if (res.ok) return res.json();
             return res.json().catch(function () { return {}; }).then(function (err) {
